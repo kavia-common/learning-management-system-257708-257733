@@ -61,9 +61,22 @@ Mapping note for React (Create React App):
     - REACT_APP_SUPABASE_ANON_KEY="${SUPABASE_KEY}"
   at build time (e.g., in your pipeline step or Dockerfile).
 
+Troubleshooting: Missing anon key / URL
+- Symptom: "supabaseKey is required." or an error thrown from src/supabaseClient.js about missing variables.
+- Cause: REACT_APP_SUPABASE_* are not set at build time; CRA strips non-REACT_APP_* from the client bundle.
+- Fix:
+  1) Ensure these are set before `npm start` / `npm run build`:
+     export REACT_APP_SUPABASE_URL="$SUPABASE_URL"
+     export REACT_APP_SUPABASE_ANON_KEY="$SUPABASE_KEY"
+  2) Or put them in a .env (do NOT commit real secrets) using .env.example as reference.
+  3) Rebuild/restart the app.
+- Dev hint: In development, the console logs presence booleans (never values) for these env vars to help diagnose.
+
+Security note:
+- We never log secrets. Only presence is logged in development.
+- Never commit real keys to the repo. Use environment configuration/secrets management service.
+
 Healthcheck (developer aid):
 - A lightweight dev-only healthcheck runs on app mount (console-only) via src/health/supabaseHealthcheck.js.
 - It calls supabase.auth.getSession and a minimal select from 'learning_paths' to verify connectivity.
 - This is non-blocking and logs to the dev console for quick diagnostics.
-
-Never commit secrets to the repo. Configure these in your deployment environment.
