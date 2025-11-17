@@ -92,7 +92,8 @@ function TopNav({ onToggleTheme, theme }) {
   const logout = async () => {
     try {
       await auth.signOut();
-      navigate('/signin');
+      // Replace history entry so back button doesn't return to a protected page
+      navigate('/signin', { replace: true });
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Sign out failed', e);
