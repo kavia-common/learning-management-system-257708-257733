@@ -93,27 +93,17 @@ function TopNav({ onToggleTheme, theme }) {
     try {
       // Ensure session is cleared in Supabase first
       await auth.signOut();
-
-      // Prefer React Router navigate with history replace
-      if (typeof navigate === 'function') {
-        navigate('/signin', { replace: true });
-      } else if (typeof window !== 'undefined' && window?.location?.assign) {
-        // Safe fallback if navigate is not available in some context
-        window.location.assign('/signin');
-      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Sign out failed', e);
-
-      // Best-effort redirect even if signOut throws (e.g., network issues)
-      try {
-        if (typeof navigate === 'function') {
-          navigate('/signin', { replace: true });
-        } else if (typeof window !== 'undefined' && window?.location?.assign) {
-          window.location.assign('/signin');
-        }
-      } catch (_) {
-        // no-op
+      // continue to force redirect regardless
+    } finally {
+      // Force a hard redirect to clear in-memory state and prevent back navigation into protected routes
+      if (typeof window !== 'undefined' && window?.location?.replace) {
+        window.location.replace('/signin');
+      } else if (typeof navigate === 'function') {
+        // Fallback: still try router navigate with replace
+        navigate('/signin', { replace: true });
       }
     }
   };

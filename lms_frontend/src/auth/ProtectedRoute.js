@@ -14,9 +14,10 @@ function ProtectedRoute({ children, requireRole }) {
   const { user, profile } = useAuth();
   const location = useLocation();
 
-  // If not authenticated, go to sign-in
+  // If not authenticated, go to sign-in.
+  // Use replace to avoid leaving a protected entry in the history stack and do NOT carry forward state.
   if (!user) {
-    return <Navigate to="/signin" replace state={{ from: location }} />;
+    return <Navigate to="/signin" replace />;
   }
 
   // If a specific role is required:
