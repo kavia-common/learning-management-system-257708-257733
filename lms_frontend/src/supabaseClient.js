@@ -2,12 +2,12 @@ import { createBrowserClient } from '@supabase/ssr';
 
 /**
  * PUBLIC_INTERFACE
- * Returns a configured Supabase browser client for PKCE auth flow.
+ * Returns a configured Supabase browser client.
  *
  * Notes:
  * - Supabase client in the browser STILL requires the project's public anon key and URL.
  *   The anon key is safe to expose in the client when Row Level Security (RLS) is enabled.
- * - PKCE controls the OAuth flow and token handling, not the need for anon key.
+ * - This app uses email/password authentication only (OAuth removed).
  * - Configure the following env vars in the frontend:
  *   - REACT_APP_SUPABASE_URL
  *   - REACT_APP_SUPABASE_KEY (anon/public key)

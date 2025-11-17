@@ -6,13 +6,11 @@ import AdminDashboard from "../dashboards/AdminDashboard";
 import LearningPathsList from "../components/LearningPathsList";
 import CoursesList from "../components/CoursesList";
 import CoursePlayer from "../courses/CoursePlayer";
-import Login from "../auth/Login";
-import AuthCallback from "../auth/AuthCallback";
 import SignUpSignIn from "../auth/SignUpSignIn";
 
 /**
  * PUBLIC_INTERFACE
- * AppRoutes defines top-level routes for the LMS app, including PKCE auth routes.
+ * AppRoutes defines top-level routes for the LMS app, with email/password auth at /signin.
  */
 function AppRoutes() {
   const Unauthorized = () => (
@@ -43,10 +41,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Auth (PKCE + Email/Password) */}
-      <Route path="/login" element={<Login />} />
+      {/* Auth: only email/password with role selection via SignUpSignIn */}
       <Route path="/signin" element={<SignUpSignIn />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* Primary dashboards */}
       <Route

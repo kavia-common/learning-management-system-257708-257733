@@ -103,8 +103,8 @@ function SignUpSignIn() {
     try {
       const redirectTo =
         process.env.REACT_APP_FRONTEND_URL
-          ? `${process.env.REACT_APP_FRONTEND_URL}/auth/callback`
-          : `${window.location.origin}/auth/callback`;
+          ? `${process.env.REACT_APP_FRONTEND_URL}`
+          : `${window.location.origin}`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -146,7 +146,7 @@ function SignUpSignIn() {
       setMessage({
         error: "",
         info:
-          "Signup successful. Please check your email to confirm your account (if required), then sign in.",
+          "Signup successful. Please check your email to confirm your account (if required), then return here to sign in.",
       });
       setMode("signin");
     } catch (e) {

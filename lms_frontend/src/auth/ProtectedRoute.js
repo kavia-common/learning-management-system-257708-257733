@@ -19,7 +19,7 @@ function ProtectedRoute({ children, requireRole }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to="/signin" replace state={{ from: location }} />;
   }
 
   if (requireRole && profile?.role && profile.role !== requireRole) {

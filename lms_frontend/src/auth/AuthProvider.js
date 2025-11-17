@@ -104,7 +104,7 @@ export function AuthProvider({ children }) {
       loading,
       // PUBLIC_INTERFACE
       signIn: async (email, password) => {
-        // Email/password sign-in supported; PKCE remains available via Login.js.
+        // Email/password sign-in only.
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         // onAuthStateChange will populate profile after sign-in

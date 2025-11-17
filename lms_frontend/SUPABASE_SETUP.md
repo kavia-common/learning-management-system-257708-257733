@@ -1,6 +1,9 @@
-# Supabase setup (frontend notes, PKCE)
+# Supabase setup (frontend notes, Email/Password only)
 
-This frontend uses Supabase PKCE OAuth flow with Supabase’s public anon key and project URL provided via environment variables. The anon key is intended to be exposed in client-side apps when Row Level Security (RLS) is enabled.
+This frontend uses Supabase email/password authentication. OAuth/PKCE is removed. The app provides a single auth entry point at /signin where users can:
+- Sign in with email/password
+- Sign up with email/password and select a role (employee or admin)
+  - On sign-up, the app upserts the user's role into the profiles table.
 
 Required tables (unchanged):
 - profiles (id uuid PK, email text, role text, created_at timestamptz default now())
@@ -19,46 +22,29 @@ Environment variables (client):
 - REACT_APP_SUPABASE_URL = https://<your-project-ref>.supabase.co
 - REACT_APP_SUPABASE_KEY = <your anon/public key>
 
-These are required for the browser Supabase client to function (including PKCE). The keys are public and safe in the browser with proper RLS policies.
+These are required for the browser Supabase client. The anon key is public and safe in the browser with proper RLS policies.
 
-PKCE configuration in Supabase Dashboard:
-1) Go to Authentication → URL Configuration
-   - Site URL: set to your frontend origin, e.g., http://localhost:3000 (or your preview/prod URL)
-   - Additional Redirect URLs:
-     - http://localhost:3000/auth/callback
-     - https://<your-domain>/auth/callback
-   - Save changes.
-2) Providers (Authentication → Providers):
-   - Enable your desired OAuth providers (e.g., Google, GitHub, Microsoft).
-   - Add the provider credentials (Client ID/Secret).
-   - Set the authorized redirect URL(s) at the provider to match:
-     - https://<your-domain>/auth/callback
-     - http://localhost:3000/auth/callback (for local dev)
-3) Anon key usage (public):
-   - The frontend supplies SUPABASE_URL and SUPABASE_KEY (anon/public) at runtime via env vars.
-   - This is required by supabase-js; do not use service keys in the client.
-4) Email/Password (optional):
-   - If you also enable email/password, the app still supports signInWithPassword, but PKCE OAuth is the primary flow.
+Email/Password configuration in Supabase Dashboard:
+1) Authentication → Providers → Email
+   - Enable "Email" provider.
+   - Decide whether email confirmations are required.
+     - If confirmations are required, users will need to confirm via email before getting a session.
+2) Authentication → URL Configuration
+   - Set "Site URL" to your frontend origin, e.g., http://localhost:3000 (or your preview/prod URL).
+   - Email confirmation redirect is handled by Supabase automatically; the app's auth screen is at /signin.
 
 Frontend routes involved:
-- /login → starts OAuth sign-in (default: Google) using PKCE.
-- /auth/callback → exchanges the authorization code for a session.
-- /dashboard → protected Employee dashboard (requires session).
+- /signin → Sign up or sign in with email/password only.
+- (The previous /login and /auth/callback routes for OAuth are removed.)
 
 Notes:
 - Session is persisted in the browser; token auto-refresh is enabled.
 - No secrets are logged (anon key is public and not a secret).
-- If sign-in fails, users are redirected back to /login with a basic message.
 
 Troubleshooting:
-- If redirect loop occurs, verify Site URL and Redirect URLs match the actual origin exactly (protocol, host, port).
-- Ensure the OAuth provider’s console also includes the same redirect URL.
-- Check browser console for any Supabase auth errors during callback.
-
-Healthcheck (developer aid):
-- A lightweight dev-only healthcheck runs on app mount (console-only) via src/health/supabaseHealthcheck.js.
-- It calls supabase.auth.getSession and a minimal select from 'learning_paths' to verify connectivity.
-- This does not log secrets; intended for local diagnostics.
+- If sign-in fails, check browser console for any Supabase auth errors.
+- Ensure the Email provider is enabled in Supabase.
+- Verify RLS policies match the intended behavior.
 
 .env.example (place in project root of lms_frontend and copy to .env):
 ```

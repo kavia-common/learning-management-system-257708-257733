@@ -92,7 +92,7 @@ function TopNav({ onToggleTheme, theme }) {
   const logout = async () => {
     try {
       await auth.signOut();
-      navigate('/login');
+      navigate('/signin');
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Sign out failed', e);
@@ -110,7 +110,7 @@ function TopNav({ onToggleTheme, theme }) {
         <Link className="nav-link" to="/dashboard">Employee</Link>
         <Link className="nav-link" to="/admin/dashboard">Admin</Link>
         {!auth.user ? (
-          <Link className="nav-link" to="/login">Login</Link>
+          <Link className="nav-link" to="/signin">Login</Link>
         ) : (
           <button
             onClick={logout}
