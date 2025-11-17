@@ -19,13 +19,22 @@ function ProtectedRoute({ children, requireRole }) {
     return <Navigate to="/signin" replace />;
   }
 
-  // If a specific role is required:
+  // If a specific role is required, wait for role to be determined instead of denying immediately.
   if (requireRole) {
     const effectiveRole = profile?.role;
-    if (!effectiveRole) {
-      // Conservative behavior: deny until role is known to avoid privilege escalation
-      return <Navigate to="/unauthorized" replace />;
+
+    // When user is signed in but profile not yet loaded, render a lightweight placeholder to avoid false Unauthorized.
+    if (typeof effectiveRole === "undefined" || effectiveRole === null) {
+      return (
+        <div className="container" style={{ maxWidth: 640, margin: "24px auto" }}>
+          <div className="card">
+            <p>Checking permissions...</p>
+          </div>
+        </div>
+      );
     }
+
+    // If role loaded and doesn't match, block.
     if (effectiveRole !== requireRole) {
       return <Navigate to="/unauthorized" replace />;
     }

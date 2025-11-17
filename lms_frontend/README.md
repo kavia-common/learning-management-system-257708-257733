@@ -27,6 +27,22 @@ Launches the test runner in interactive watch mode.
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
+## Environment variables
+
+Copy `.env.example` to `.env` and set the variables as needed:
+
+- `REACT_APP_SUPABASE_URL` and `REACT_APP_SUPABASE_KEY` are required for Supabase email/password auth.
+- `REACT_APP_FRONTEND_URL` should point to your frontend origin for email confirmation redirects.
+- If you integrate with a backend, set `REACT_APP_API_BASE` or `REACT_APP_BACKEND_URL` as needed.
+
+## Authorization notes
+
+- The app uses Supabase and a `profiles` table with a `role` field (`employee` or `admin`).
+- The route guard (`src/auth/ProtectedRoute.js`) will:
+  - Redirect unauthenticated users to `/signin`.
+  - For role-gated routes (e.g., `/admin/dashboard`), show a short "Checking permissions..." state while the user’s profile/role is loading, then allow or deny based on `profile.role`.
+  - This avoids false “Unauthorized” screens if the role has not loaded yet.
+
 ## Customization
 
 ### Colors
