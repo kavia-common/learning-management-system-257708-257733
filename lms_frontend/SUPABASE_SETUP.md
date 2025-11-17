@@ -1,6 +1,6 @@
 # Supabase setup (frontend notes, PKCE)
 
-This frontend uses Supabase PKCE OAuth flow with no anon key or project URL embedded in client code. Configure Supabase Dashboard appropriately and set up OAuth providers.
+This frontend uses Supabase PKCE OAuth flow with Supabase’s public anon key and project URL provided via environment variables. The anon key is intended to be exposed in client-side apps when Row Level Security (RLS) is enabled.
 
 Required tables (unchanged):
 - profiles (id uuid PK, email text, role text, created_at timestamptz default now())
@@ -15,6 +15,12 @@ Minimal RLS (example):
 - course_progress: enable RLS; allow user to manage rows where user_id = auth.uid().
 - learning_paths, courses: readable by authenticated users.
 
+Environment variables (client):
+- REACT_APP_SUPABASE_URL = https://<your-project-ref>.supabase.co
+- REACT_APP_SUPABASE_KEY = <your anon/public key>
+
+These are required for the browser Supabase client to function (including PKCE). The keys are public and safe in the browser with proper RLS policies.
+
 PKCE configuration in Supabase Dashboard:
 1) Go to Authentication → URL Configuration
    - Site URL: set to your frontend origin, e.g., http://localhost:3000 (or your preview/prod URL)
@@ -28,9 +34,9 @@ PKCE configuration in Supabase Dashboard:
    - Set the authorized redirect URL(s) at the provider to match:
      - https://<your-domain>/auth/callback
      - http://localhost:3000/auth/callback (for local dev)
-3) No anon key usage:
-   - The frontend does not supply SUPABASE_URL or SUPABASE_KEY at runtime/build time.
-   - Do NOT expose anon keys in the client.
+3) Anon key usage (public):
+   - The frontend supplies SUPABASE_URL and SUPABASE_KEY (anon/public) at runtime via env vars.
+   - This is required by supabase-js; do not use service keys in the client.
 4) Email/Password (optional):
    - If you also enable email/password, the app still supports signInWithPassword, but PKCE OAuth is the primary flow.
 
@@ -41,7 +47,7 @@ Frontend routes involved:
 
 Notes:
 - Session is persisted in the browser; token auto-refresh is enabled.
-- No secrets are logged.
+- No secrets are logged (anon key is public and not a secret).
 - If sign-in fails, users are redirected back to /login with a basic message.
 
 Troubleshooting:
@@ -53,3 +59,12 @@ Healthcheck (developer aid):
 - A lightweight dev-only healthcheck runs on app mount (console-only) via src/health/supabaseHealthcheck.js.
 - It calls supabase.auth.getSession and a minimal select from 'learning_paths' to verify connectivity.
 - This does not log secrets; intended for local diagnostics.
+
+.env.example (place in project root of lms_frontend and copy to .env):
+```
+# PUBLIC Supabase values (safe to expose with RLS enabled)
+REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
+REACT_APP_SUPABASE_KEY=eyJhbGciOi...<anon-key>...
+# Optional other frontend settings
+REACT_APP_FRONTEND_URL=http://localhost:3000
+```
