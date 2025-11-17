@@ -53,4 +53,17 @@ Environment variables (in .env):
 - REACT_APP_SUPABASE_ANON_KEY
 - REACT_APP_FRONTEND_URL (used for emailRedirectTo on sign up)
 
+Mapping note for React (Create React App):
+- CRA only exposes env vars prefixed with REACT_APP_ to the client bundle.
+- If your CI/CD or secrets manager provides SUPABASE_URL and SUPABASE_KEY (common naming),
+  ensure they are mapped to:
+    - REACT_APP_SUPABASE_URL="${SUPABASE_URL}"
+    - REACT_APP_SUPABASE_ANON_KEY="${SUPABASE_KEY}"
+  at build time (e.g., in your pipeline step or Dockerfile).
+
+Healthcheck (developer aid):
+- A lightweight dev-only healthcheck runs on app mount (console-only) via src/health/supabaseHealthcheck.js.
+- It calls supabase.auth.getSession and a minimal select from 'learning_paths' to verify connectivity.
+- This is non-blocking and logs to the dev console for quick diagnostics.
+
 Never commit secrets to the repo. Configure these in your deployment environment.

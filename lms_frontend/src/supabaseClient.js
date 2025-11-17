@@ -9,12 +9,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// Basic guard to help DX during development; production environments should provide env vars.
-if (!supabaseUrl || !supabaseAnonKey) {
-  // eslint-disable-next-line no-console
-  console.warn(
-    'Supabase environment variables are not set. Please configure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY in your environment.'
-  );
+// Developer guidance to help map non-React var names to CRA-compatible ones
+if (process.env.NODE_ENV === 'development') {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'Supabase vars missing. React requires REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY. ' +
+        'If your pipeline provides SUPABASE_URL/SUPABASE_KEY, map them at build time to the REACT_APP_* equivalents.'
+    );
+  }
 }
 
 // PUBLIC_INTERFACE

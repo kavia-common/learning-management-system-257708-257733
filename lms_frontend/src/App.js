@@ -5,6 +5,7 @@ import AppRoutes from './routes/AppRoutes';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import AddLearningPath from './components/AddLearningPath';
 import AddCourse from './components/AddCourse';
+import runSupabaseHealthcheck from './health/supabaseHealthcheck';
 
 // PUBLIC_INTERFACE
 function App() {
@@ -13,6 +14,26 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Development-only: run a quick Supabase healthcheck once on mount
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      (async () => {
+        try {
+          const result = await runSupabaseHealthcheck();
+          // eslint-disable-next-line no-console
+          console.log(
+            '[Supabase Healthcheck]',
+            result.ok ? 'OK' : 'FAILED',
+            result.details
+          );
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('[Supabase Healthcheck] exception', e);
+        }
+      })();
+    }
+  }, []);
 
   // PUBLIC_INTERFACE
   const toggleTheme = () => {
