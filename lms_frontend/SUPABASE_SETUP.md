@@ -53,6 +53,10 @@ Environment variables (in .env):
 - REACT_APP_SUPABASE_ANON_KEY
 - REACT_APP_FRONTEND_URL (used for emailRedirectTo on sign up)
 
+Note: This container's environment list may include REACT_APP_SUPABASE_KEY instead of REACT_APP_SUPABASE_ANON_KEY.
+The app prefers REACT_APP_SUPABASE_ANON_KEY. If your CI only provides REACT_APP_SUPABASE_KEY,
+map it to REACT_APP_SUPABASE_ANON_KEY at build time, or set both with the same value.
+
 Mapping note for React (Create React App):
 - CRA only exposes env vars prefixed with REACT_APP_ to the client bundle.
 - If your CI/CD or secrets manager provides SUPABASE_URL and SUPABASE_KEY (common naming),
