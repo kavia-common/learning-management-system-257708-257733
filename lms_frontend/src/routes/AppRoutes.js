@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useParams } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import EmployeeDashboard from "../dashboards/EmployeeDashboard";
 import AdminDashboard from "../dashboards/AdminDashboard";
@@ -30,7 +30,7 @@ function AppRoutes() {
   );
 
   const CoursesByPath = () => {
-    const { id } = useParamsShim();
+    const { id } = useParams();
     return (
       <div className="container" style={{ maxWidth: 960, margin: "24px auto" }}>
         <h2 className="h2" style={{ textAlign: "left" }}>Courses for Path {id}</h2>
@@ -91,13 +91,6 @@ function AppRoutes() {
       <Route path="*" element={<PathsPage />} />
     </Routes>
   );
-}
-
-function useParamsShim() {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { useParams } = require("react-router-dom");
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  return useParams();
 }
 
 export default AppRoutes;

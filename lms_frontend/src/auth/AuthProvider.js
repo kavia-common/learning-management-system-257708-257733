@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState, useRef } from "react";
 import supabase from "../supabaseClient";
 
 /**
@@ -18,28 +18,36 @@ const AuthContext = createContext({
 // PUBLIC_INTERFACE
 /**
  * AuthProvider wraps the app, subscribes to Supabase auth state, and loads the user's profile.
- * Compatible with PKCE flow using supabase.auth.getSession and onAuthStateChange.
- * If a session user exists, fetches profile by id and sets it into context.
+ * It ensures loading resolves promptly even if profile fetch fails, avoiding infinite spinners.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // an incrementing token to ensure we set profile for the latest user only
+  const loadTokenRef = useRef(0);
+
   // Load a user's profile by id and set into context
   const loadProfile = async (uid) => {
+    const tokenAtStart = ++loadTokenRef.current;
     try {
       const { data: profData, error: profErr } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", uid)
         .maybeSingle();
+      if (loadTokenRef.current !== tokenAtStart) {
+        // Stale request; ignore to avoid race conditions
+        return;
+      }
       if (profErr) {
         // eslint-disable-next-line no-console
         console.warn("Error loading profile", profErr);
       }
       setProfile(profData || null);
     } catch (e) {
+      if (loadTokenRef.current !== tokenAtStart) return;
       // eslint-disable-next-line no-console
       console.warn("Profile load exception", e);
       setProfile(null);
@@ -49,6 +57,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
 
+    // Initial session hydrate
     (async () => {
       setLoading(true);
       try {
@@ -64,6 +73,7 @@ export function AuthProvider({ children }) {
         if (!active) return;
         setUser(authUser);
         if (authUser?.id) {
+          // Do not block loading on profile fetch; we will flip loading in finally.
           await loadProfile(authUser.id);
         } else {
           setProfile(null);
@@ -79,16 +89,26 @@ export function AuthProvider({ children }) {
       }
     })();
 
+    // Subscribe to auth state changes
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!active) return;
       const nextUser = session?.user ?? null;
       setUser(nextUser);
-      if (nextUser?.id) {
-        await loadProfile(nextUser.id);
-      } else {
+
+      // Always try to load profile, but ensure loading state is not stuck
+      try {
+        if (nextUser?.id) {
+          await loadProfile(nextUser.id);
+        } else {
+          setProfile(null);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("onAuthStateChange profile load failed", e);
         setProfile(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -114,6 +134,10 @@ export function AuthProvider({ children }) {
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+        // After sign out, ensure state clears promptly
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
       },
     }),
     [user, profile, loading]

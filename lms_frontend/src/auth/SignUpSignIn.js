@@ -55,9 +55,9 @@ function SignUpSignIn() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      // Attempt to fetch profile to know where to navigate
       const userId = data?.user?.id;
       if (userId) {
+        // Fetch role and navigate accordingly
         const { data: prof, error: profErr } = await supabase
           .from("profiles")
           .select("role")
@@ -71,7 +71,7 @@ function SignUpSignIn() {
         return;
       }
 
-      // Fallback success message if we can't navigate for some reason
+      // Fallback success message
       setMessage({ error: "", info: "Signed in successfully." });
     } catch (e) {
       setMessage({ error: e?.message || "Failed to sign in", info: "" });
@@ -117,9 +117,7 @@ function SignUpSignIn() {
 
       const newUser = data?.user;
 
-      // Upsert profile immediately when we have the user id (if email confirmation disabled,
-      // user may be created and available immediately). Otherwise, this upsert will succeed later
-      // after confirmation on next session.
+      // Upsert profile when possible
       if (newUser?.id) {
         const { error: upErr } = await supabase
           .from("profiles")
@@ -137,7 +135,7 @@ function SignUpSignIn() {
         }
       }
 
-      // If session is already active (no email confirmation needed), navigate by role
+      // If session exists immediately, redirect based on chosen role
       if (data?.session?.user?.id) {
         navigateByRole(role);
         return;
@@ -164,7 +162,7 @@ function SignUpSignIn() {
           <div className="row" role="tablist" aria-label="Auth mode">
             <button
               className={`btn ${mode === "signin" ? "btn-primary" : ""}`}
-              onClick={() => setMode("signin")}
+              onClick={() => { setMode("signin"); resetMessages(); }}
               aria-pressed={mode === "signin"}
               role="tab"
               aria-selected={mode === "signin"}
@@ -173,7 +171,7 @@ function SignUpSignIn() {
             </button>
             <button
               className={`btn ${mode === "signup" ? "btn-primary" : ""}`}
-              onClick={() => setMode("signup")}
+              onClick={() => { setMode("signup"); resetMessages(); }}
               aria-pressed={mode === "signup"}
               role="tab"
               aria-selected={mode === "signup"}

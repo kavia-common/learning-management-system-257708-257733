@@ -21,6 +21,7 @@ Minimal RLS (example):
 Environment variables (client):
 - REACT_APP_SUPABASE_URL = https://<your-project-ref>.supabase.co
 - REACT_APP_SUPABASE_KEY = <your anon/public key>
+- REACT_APP_FRONTEND_URL = http://localhost:3000 (or your deployed origin)
 
 These are required for the browser Supabase client. The anon key is public and safe in the browser with proper RLS policies.
 
@@ -31,11 +32,15 @@ Email/Password configuration in Supabase Dashboard:
      - If confirmations are required, users will need to confirm via email before getting a session.
 2) Authentication → URL Configuration
    - Set "Site URL" to your frontend origin, e.g., http://localhost:3000 (or your preview/prod URL).
-   - Email confirmation redirect is handled by Supabase automatically; the app's auth screen is at /signin.
+   - Ensure "Additional Redirect URLs" include your preview/prod variations if applicable.
+
+Frontend behavior:
+- On sign-up, we pass options.emailRedirectTo set to REACT_APP_FRONTEND_URL (or window.location.origin fallback) so Supabase completes the email link flow at your site URL.
+- If email confirmations are OFF, users receive a session immediately and will be redirected to the dashboard based on selected role.
+- If email confirmations are ON, users see an informational message to check email, then sign in after confirming.
 
 Frontend routes involved:
 - /signin → Sign up or sign in with email/password only.
-- (The previous /login and /auth/callback routes for OAuth are removed.)
 
 Notes:
 - Session is persisted in the browser; token auto-refresh is enabled.
@@ -45,12 +50,14 @@ Troubleshooting:
 - If sign-in fails, check browser console for any Supabase auth errors.
 - Ensure the Email provider is enabled in Supabase.
 - Verify RLS policies match the intended behavior.
+- If you see an infinite "Loading..." state, confirm that REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_KEY are present, and that the profiles table allows the signed-in user to select their own row via RLS.
 
 .env.example (place in project root of lms_frontend and copy to .env):
 ```
 # PUBLIC Supabase values (safe to expose with RLS enabled)
 REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
 REACT_APP_SUPABASE_KEY=eyJhbGciOi...<anon-key>...
-# Optional other frontend settings
+
+# Frontend origin used for email confirmation redirect (must match Supabase Site URL)
 REACT_APP_FRONTEND_URL=http://localhost:3000
 ```

@@ -14,16 +14,27 @@ function ProtectedRoute({ children, requireRole }) {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
+  // While the auth bootstrap is running, show a short-loading state
   if (loading) {
     return <div style={{ padding: 24 }}>Loading...</div>;
   }
 
+  // If not authenticated, go to sign-in
   if (!user) {
     return <Navigate to="/signin" replace state={{ from: location }} />;
   }
 
-  if (requireRole && profile?.role && profile.role !== requireRole) {
-    return <Navigate to="/unauthorized" replace />;
+  // If a specific role is required:
+  if (requireRole) {
+    // If we don't have a profile yet, do not block forever; allow but show fallback if role unknown
+    const effectiveRole = profile?.role;
+    if (!effectiveRole) {
+      // Conservative behavior: deny until role is known to avoid privilege escalation
+      return <Navigate to="/unauthorized" replace />;
+    }
+    if (effectiveRole !== requireRole) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;
