@@ -16,14 +16,10 @@ export async function runSupabaseHealthcheck() {
   let dbOk = false;
 
   try {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
+    const { error } = await supabase.auth.getSession();
     if (error) {
       errors.push(`auth.getSession error: ${error.message}`);
     } else {
-      // Session can be null for anon; the call itself succeeding proves auth endpoint works
       sessionOk = true;
     }
   } catch (e) {
@@ -32,7 +28,7 @@ export async function runSupabaseHealthcheck() {
 
   try {
     // Try a minimal query - table should exist per project setup; tolerate RLS blocking
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("learning_paths")
       .select("id", { count: "exact", head: true })
       .limit(1);

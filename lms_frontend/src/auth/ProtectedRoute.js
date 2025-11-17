@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 
 /**
@@ -12,7 +12,6 @@ import { useAuth } from "./AuthProvider";
  */
 function ProtectedRoute({ children, requireRole }) {
   const { user, profile } = useAuth();
-  const location = useLocation();
 
   // If not authenticated, go to sign-in.
   // Use replace to avoid leaving a protected entry in the history stack and do NOT carry forward state.
