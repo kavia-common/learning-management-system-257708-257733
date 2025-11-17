@@ -125,6 +125,19 @@ export function AuthProvider({ children }) {
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+
+        try {
+          // Defensive: clear any persisted auth storage used by Supabase client to avoid edge race conditions.
+          // Supabase stores session under a key like "sb-<project-ref>-auth-token".
+          Object.keys(window.localStorage || {}).forEach((k) => {
+            if (k.startsWith("sb-") && k.includes("-auth-token")) {
+              window.localStorage.removeItem(k);
+            }
+          });
+        } catch (_) {
+          // no-op if localStorage not available
+        }
+
         // After sign out, clear state promptly
         setUser(null);
         setProfile(null);

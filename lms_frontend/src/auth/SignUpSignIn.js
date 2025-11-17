@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../supabaseClient";
+import { useAuth } from "./AuthProvider";
 
 /**
  * PUBLIC_INTERFACE
@@ -20,6 +21,21 @@ function SignUpSignIn() {
   const [message, setMessage] = useState({ error: "", info: "" });
 
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+
+  useEffect(() => {
+    // If the user is already signed in, redirect to an appropriate dashboard.
+    if (user) {
+      const roleVal = profile?.role || "employee";
+      if (roleVal === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/employee/dashboard", { replace: true });
+      }
+    }
+    // Only depend on stable ids/role to avoid flicker
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, profile?.role]);
 
   const resetMessages = () => setMessage({ error: "", info: "" });
 
