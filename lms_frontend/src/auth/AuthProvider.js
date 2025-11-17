@@ -19,20 +19,22 @@ const AuthContext = createContext({
 /**
  * AuthProvider wraps the app, subscribes to Supabase auth state, and loads the user's profile.
  * Compatible with PKCE flow using supabase.auth.getSession and onAuthStateChange.
+ * If a session user exists, fetches profile by id and sets it into context.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Load a user's profile by id and set into context
   const loadProfile = async (uid) => {
     try {
       const { data: profData, error: profErr } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", uid)
-        .single();
-      if (profErr && profErr.code !== "PGRST116") {
+        .maybeSingle();
+      if (profErr) {
         // eslint-disable-next-line no-console
         console.warn("Error loading profile", profErr);
       }
@@ -52,7 +54,12 @@ export function AuthProvider({ children }) {
       try {
         const {
           data: { session },
+          error,
         } = await supabase.auth.getSession();
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.warn("getSession error:", error.message);
+        }
         const authUser = session?.user ?? null;
         if (!active) return;
         setUser(authUser);
@@ -97,9 +104,10 @@ export function AuthProvider({ children }) {
       loading,
       // PUBLIC_INTERFACE
       signIn: async (email, password) => {
-        // Still available for email/password if configured; PKCE is primary.
+        // Email/password sign-in supported; PKCE remains available via Login.js.
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        // onAuthStateChange will populate profile after sign-in
         return data;
       },
       // PUBLIC_INTERFACE
@@ -114,8 +122,8 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// PUBLIC_INTERFACE
 /**
+ * PUBLIC_INTERFACE
  * useAuth hook to access auth state in components.
  */
 export function useAuth() {

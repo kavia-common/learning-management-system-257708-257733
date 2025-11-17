@@ -8,6 +8,7 @@ import CoursesList from "../components/CoursesList";
 import CoursePlayer from "../courses/CoursePlayer";
 import Login from "../auth/Login";
 import AuthCallback from "../auth/AuthCallback";
+import SignUpSignIn from "../auth/SignUpSignIn";
 
 /**
  * PUBLIC_INTERFACE
@@ -42,8 +43,9 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Auth (PKCE) */}
+      {/* Auth (PKCE + Email/Password) */}
       <Route path="/login" element={<Login />} />
+      <Route path="/signin" element={<SignUpSignIn />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* Primary dashboards */}

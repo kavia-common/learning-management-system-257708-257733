@@ -1,33 +1,80 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import supabase from "../supabaseClient";
 
 /**
  * PUBLIC_INTERFACE
- * SignUpSignIn renders a simple email/password auth form with tabs for Sign In and Sign Up.
- * On signup, it upserts into 'profiles' table with a default role 'employee'.
+ * SignUpSignIn renders email/password auth with tabs for Sign In and Sign Up.
+ * - Sign Up: full_name (optional), email, password, role (required: employee|admin)
+ *   After signUp, upsert into 'profiles' { id, full_name, role }.
+ * - Sign In: email, password.
+ * Basic validation and friendly error display are included. Uses Ocean theme classes.
  */
 function SignUpSignIn() {
   const [mode, setMode] = useState("signin"); // 'signin' | 'signup'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState({ error: "", info: "" });
 
+  const navigate = useNavigate();
+
   const resetMessages = () => setMessage({ error: "", info: "" });
+
+  const isValidEmail = (val) => /\S+@\S+\.\S+/.test(val);
+  const validatePassword = (val) => (val || "").length >= 6;
+
+  const navigateByRole = (roleValue) => {
+    if (roleValue === "admin") {
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      // default to employee dashboard
+      navigate("/employee/dashboard", { replace: true });
+    }
+  };
 
   const onSignIn = async () => {
     resetMessages();
-    if (!email || !password) {
-      setMessage({ error: "Email and password are required.", info: "" });
+    if (!email?.trim()) {
+      setMessage({ error: "Email is required.", info: "" });
       return;
     }
+    if (!isValidEmail(email)) {
+      setMessage({ error: "Please enter a valid email address.", info: "" });
+      return;
+    }
+    if (!validatePassword(password)) {
+      setMessage({ error: "Password must be at least 6 characters.", info: "" });
+      return;
+    }
+
     setPending(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Attempt to fetch profile to know where to navigate
+      const userId = data?.user?.id;
+      if (userId) {
+        const { data: prof, error: profErr } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
+        if (profErr) {
+          // eslint-disable-next-line no-console
+          console.warn("Profile fetch after sign-in failed:", profErr.message);
+        }
+        navigateByRole(prof?.role || "employee");
+        return;
+      }
+
+      // Fallback success message if we can't navigate for some reason
       setMessage({ error: "", info: "Signed in successfully." });
     } catch (e) {
-      setMessage({ error: e.message || "Failed to sign in", info: "" });
+      setMessage({ error: e?.message || "Failed to sign in", info: "" });
     } finally {
       setPending(false);
     }
@@ -35,13 +82,30 @@ function SignUpSignIn() {
 
   const onSignUp = async () => {
     resetMessages();
-    if (!email || !password) {
-      setMessage({ error: "Email and password are required.", info: "" });
+    if (!email?.trim()) {
+      setMessage({ error: "Email is required.", info: "" });
       return;
     }
+    if (!isValidEmail(email)) {
+      setMessage({ error: "Please enter a valid email address.", info: "" });
+      return;
+    }
+    if (!validatePassword(password)) {
+      setMessage({ error: "Password must be at least 6 characters.", info: "" });
+      return;
+    }
+    if (!role) {
+      setMessage({ error: "Please select a role.", info: "" });
+      return;
+    }
+
     setPending(true);
     try {
-      const redirectTo = process.env.REACT_APP_FRONTEND_URL || window.location.origin;
+      const redirectTo =
+        process.env.REACT_APP_FRONTEND_URL
+          ? `${process.env.REACT_APP_FRONTEND_URL}/auth/callback`
+          : `${window.location.origin}/auth/callback`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -51,17 +115,19 @@ function SignUpSignIn() {
       });
       if (error) throw error;
 
-      // If user created immediately (depends on email confirmation settings)
-      const newUser = data.user;
+      const newUser = data?.user;
+
+      // Upsert profile immediately when we have the user id (if email confirmation disabled,
+      // user may be created and available immediately). Otherwise, this upsert will succeed later
+      // after confirmation on next session.
       if (newUser?.id) {
-        // Upsert profile with default role 'employee'
         const { error: upErr } = await supabase
           .from("profiles")
           .upsert(
             {
               id: newUser.id,
-              email,
-              role: "employee",
+              full_name: fullName?.trim() || null,
+              role: role,
             },
             { onConflict: "id" }
           );
@@ -71,22 +137,29 @@ function SignUpSignIn() {
         }
       }
 
+      // If session is already active (no email confirmation needed), navigate by role
+      if (data?.session?.user?.id) {
+        navigateByRole(role);
+        return;
+      }
+
       setMessage({
         error: "",
-        info: "Signup successful. Check your email to confirm (if required), then sign in.",
+        info:
+          "Signup successful. Please check your email to confirm your account (if required), then sign in.",
       });
       setMode("signin");
     } catch (e) {
-      setMessage({ error: e.message || "Failed to sign up", info: "" });
+      setMessage({ error: e?.message || "Failed to sign up", info: "" });
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <div className="container" style={{ maxWidth: 520, margin: "32px auto", textAlign: "left" }}>
+    <div className="container" style={{ maxWidth: 560, margin: "32px auto", textAlign: "left" }}>
       <div className="card">
-        <div className="row" style={{ justifyContent: "space-between" }}>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <h2 className="h2" style={{ margin: 0 }}>Welcome</h2>
           <div className="row" role="tablist" aria-label="Auth mode">
             <button
@@ -111,6 +184,21 @@ function SignUpSignIn() {
         </div>
 
         <div className="stack" style={{ marginTop: 12 }}>
+          {mode === "signup" && (
+            <div>
+              <label htmlFor="full_name" className="label">Full name (optional)</label>
+              <input
+                id="full_name"
+                className="input"
+                type="text"
+                autoComplete="name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your name"
+              />
+            </div>
+          )}
+
           <div>
             <label htmlFor="email" className="label">Email</label>
             <input
@@ -121,20 +209,42 @@ function SignUpSignIn() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              aria-invalid={!!(message.error && !email)}
             />
+            <div className="helper">Use your work email if applicable.</div>
           </div>
+
           <div>
             <label htmlFor="password" className="label">Password</label>
             <input
               id="password"
-              className={`input ${message.error && !password ? "error" : ""}`}
+              className={`input ${message.error && !validatePassword(password) ? "error" : ""}`}
               type="password"
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="At least 6 characters"
+              aria-invalid={!!(message.error && !validatePassword(password))}
             />
           </div>
+
+          {mode === "signup" && (
+            <div>
+              <label htmlFor="role" className="label">Role</label>
+              <select
+                id="role"
+                className={`select ${message.error && !role ? "error" : ""}`}
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="">Select a role</option>
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+              </select>
+              <div className="helper">Choose your role for access control.</div>
+            </div>
+          )}
+
           <div className="row">
             {mode === "signin" ? (
               <button
@@ -150,7 +260,7 @@ function SignUpSignIn() {
                 onClick={onSignUp}
                 disabled={pending}
               >
-                {pending ? "Signing up..." : "Create Account"}
+                {pending ? "Creating account..." : "Create Account"}
               </button>
             )}
           </div>
