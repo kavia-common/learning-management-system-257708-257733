@@ -7,6 +7,7 @@ import LearningPathsList from "../components/LearningPathsList";
 import CoursesList from "../components/CoursesList";
 import CoursePlayer from "../courses/CoursePlayer";
 import SignUpSignIn from "../auth/SignUpSignIn";
+import AdminSignIn from "../auth/AdminSignIn";
 
 /**
  * PUBLIC_INTERFACE
@@ -43,6 +44,8 @@ function AppRoutes() {
     <Routes>
       {/* Auth: only email/password with role selection via SignUpSignIn */}
       <Route path="/signin" element={<SignUpSignIn />} />
+      {/* Dedicated admin sign-in route (public) */}
+      <Route path="/admin/signin" element={<AdminSignIn />} />
 
       {/* Primary dashboards */}
       <Route

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import supabase from "../supabaseClient";
 import { useAuth } from "./AuthProvider";
 
@@ -281,6 +282,11 @@ function SignUpSignIn() {
 
           {message.error && <p role="alert" className="field-error">{message.error}</p>}
           {message.info && <p style={{ color: "var(--color-primary)" }}>{message.info}</p>}
+          <div className="helper">
+            Admin? Use the dedicated{" "}
+            <Link to="/admin/signin" className="link">Admin sign in</Link>
+            {" "}page.
+          </div>
         </div>
       </div>
     </div>
