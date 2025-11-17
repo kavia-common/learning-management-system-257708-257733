@@ -18,69 +18,66 @@ const AuthContext = createContext({
 // PUBLIC_INTERFACE
 /**
  * AuthProvider wraps the app, subscribes to Supabase auth state, and loads the user's profile.
- * - Uses Supabase v2 APIs: getSession and onAuthStateChange
- * - Loads profile from 'profiles' table keyed by auth user id.
+ * Compatible with PKCE flow using supabase.auth.getSession and onAuthStateChange.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadSessionAndProfile = async () => {
-    setLoading(true);
+  const loadProfile = async (uid) => {
     try {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-      if (error) throw error;
-
-      const authUser = session?.user ?? null;
-      setUser(authUser);
-
-      if (authUser) {
-        const { data: profData, error: profErr } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", authUser.id)
-          .single();
-        if (profErr && profErr.code !== "PGRST116") {
-          // PGRST116: No rows found; tolerate if profile not yet created
-          // eslint-disable-next-line no-console
-          console.warn("Error loading profile", profErr);
-        }
-        setProfile(profData || null);
-      } else {
-        setProfile(null);
+      const { data: profData, error: profErr } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", uid)
+        .single();
+      if (profErr && profErr.code !== "PGRST116") {
+        // eslint-disable-next-line no-console
+        console.warn("Error loading profile", profErr);
       }
+      setProfile(profData || null);
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error("Auth load error:", e);
-      setUser(null);
+      console.warn("Profile load exception", e);
       setProfile(null);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSessionAndProfile();
+    let active = true;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const authUser = session?.user ?? null;
+        if (!active) return;
+        setUser(authUser);
+        if (authUser?.id) {
+          await loadProfile(authUser.id);
+        } else {
+          setProfile(null);
+        }
+      } catch (e) {
+        if (!active) return;
+        // eslint-disable-next-line no-console
+        console.error("Auth init error:", e);
+        setUser(null);
+        setProfile(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!active) return;
       const nextUser = session?.user ?? null;
       setUser(nextUser);
-
-      if (nextUser) {
-        const { data: profData, error: profErr } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", nextUser.id)
-          .single();
-        if (profErr && profErr.code !== "PGRST116") {
-          // eslint-disable-next-line no-console
-          console.warn("Error loading profile on auth change", profErr);
-        }
-        setProfile(profData || null);
+      if (nextUser?.id) {
+        await loadProfile(nextUser.id);
       } else {
         setProfile(null);
       }
@@ -88,9 +85,9 @@ export function AuthProvider({ children }) {
     });
 
     return () => {
+      active = false;
       sub.subscription?.unsubscribe?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = useMemo(
@@ -100,14 +97,13 @@ export function AuthProvider({ children }) {
       loading,
       // PUBLIC_INTERFACE
       signIn: async (email, password) => {
-        /** Sign in using email/password with Supabase v2 API. */
+        // Still available for email/password if configured; PKCE is primary.
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data;
       },
       // PUBLIC_INTERFACE
       signOut: async () => {
-        /** Sign out current session. */
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
       },

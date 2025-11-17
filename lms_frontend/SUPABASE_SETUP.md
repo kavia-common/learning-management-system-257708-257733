@@ -1,78 +1,55 @@
-# Supabase setup (frontend notes)
+# Supabase setup (frontend notes, PKCE)
 
-This app expects the following tables in your Supabase project:
+This frontend uses Supabase PKCE OAuth flow with no anon key or project URL embedded in client code. Configure Supabase Dashboard appropriately and set up OAuth providers.
 
-- profiles
-  - id (uuid) PRIMARY KEY, references auth.users.id
-  - email (text)
-  - role (text) -- e.g., 'employee' or 'admin'
-  - created_at (timestamptz) default now()
+Required tables (unchanged):
+- profiles (id uuid PK, email text, role text, created_at timestamptz default now())
+- learning_paths (id, name, description, external_url, created_at)
+- courses (id, learning_path_id -> learning_paths.id, title, sequence, url, created_at)
+- enrollments (user_id -> profiles.id, learning_path_id -> learning_paths.id, created_at, PK (user_id, learning_path_id))
+- course_progress (user_id, course_id, percent_complete, started_at, completed_at, PK (user_id, course_id))
 
-- learning_paths
-  - id (uuid) PRIMARY KEY (or bigint)
-  - name (text)
-  - description (text)
-  - external_url (text)
-  - created_at timestamptz default now()
+Minimal RLS (example):
+- profiles: enable RLS; allow user to select/update own row (id = auth.uid()).
+- enrollments: enable RLS; allow user to manage rows where user_id = auth.uid().
+- course_progress: enable RLS; allow user to manage rows where user_id = auth.uid().
+- learning_paths, courses: readable by authenticated users.
 
-- courses
-  - id (uuid) PRIMARY KEY (or bigint)
-  - learning_path_id (uuid/bigint) REFERENCES learning_paths(id)
-  - title (text)
-  - sequence (int)
-  - url (text)
-  - created_at timestamptz default now()
+PKCE configuration in Supabase Dashboard:
+1) Go to Authentication → URL Configuration
+   - Site URL: set to your frontend origin, e.g., http://localhost:3000 (or your preview/prod URL)
+   - Additional Redirect URLs:
+     - http://localhost:3000/auth/callback
+     - https://<your-domain>/auth/callback
+   - Save changes.
+2) Providers (Authentication → Providers):
+   - Enable your desired OAuth providers (e.g., Google, GitHub, Microsoft).
+   - Add the provider credentials (Client ID/Secret).
+   - Set the authorized redirect URL(s) at the provider to match:
+     - https://<your-domain>/auth/callback
+     - http://localhost:3000/auth/callback (for local dev)
+3) No anon key usage:
+   - The frontend does not supply SUPABASE_URL or SUPABASE_KEY at runtime/build time.
+   - Do NOT expose anon keys in the client.
+4) Email/Password (optional):
+   - If you also enable email/password, the app still supports signInWithPassword, but PKCE OAuth is the primary flow.
 
-- enrollments
-  - user_id (uuid) REFERENCES profiles(id)
-  - learning_path_id (uuid/bigint) REFERENCES learning_paths(id)
-  - created_at timestamptz default now()
-  - PRIMARY KEY (user_id, learning_path_id)
+Frontend routes involved:
+- /login → starts OAuth sign-in (default: Google) using PKCE.
+- /auth/callback → exchanges the authorization code for a session.
+- /dashboard → protected Employee dashboard (requires session).
 
-- course_progress
-  - user_id (uuid) REFERENCES profiles(id)
-  - course_id (uuid/bigint) REFERENCES courses(id)
-  - percent_complete (int) default 0
-  - started_at timestamptz
-  - completed_at timestamptz
-  - PRIMARY KEY (user_id, course_id)
+Notes:
+- Session is persisted in the browser; token auto-refresh is enabled.
+- No secrets are logged.
+- If sign-in fails, users are redirected back to /login with a basic message.
 
-Minimal RLS policies (adjust for your needs):
-
-- profiles: enable RLS.
-  - Allow a user to select their own profile: (id = auth.uid()).
-  - Allow admin service role to manage as needed.
-- enrollments: enable RLS.
-  - Allow user to manage rows where user_id = auth.uid().
-- course_progress: enable RLS.
-  - Allow user to manage rows where user_id = auth.uid().
-- learning_paths, courses: read for all authenticated users.
-
-Environment variables (for frontend build):
-- SUPABASE_URL (required)
-- SUPABASE_KEY (required)
-- REACT_APP_FRONTEND_URL (optional; used for emailRedirectTo on sign up)
-
-Important:
-- The frontend now reads SUPABASE_URL and SUPABASE_KEY directly at build time.
-- Do not provide or use an "anon" key variable name. Only SUPABASE_KEY is expected.
-
-Troubleshooting: Missing SUPABASE_URL/SUPABASE_KEY
-- Symptom: Error "Supabase configuration is missing (SUPABASE_URL/SUPABASE_KEY)."
-- Cause: SUPABASE_URL and/or SUPABASE_KEY are not set in the environment at build/start.
-- Fix:
-  1) Ensure these are set before `npm start` / `npm run build`:
-     export SUPABASE_URL="https://<your-project>.supabase.co"
-     export SUPABASE_KEY="<your-public-key>"
-  2) Or create a local .env (do NOT commit real secrets) using .env.example as reference.
-  3) Rebuild/restart the app.
-- Dev hint: In development, the console logs presence booleans (never values) for SUPABASE_URL/SUPABASE_KEY.
-
-Security note:
-- We never log secrets. Only presence is logged in development.
-- Never commit real keys to the repo. Use environment configuration/secrets management service.
+Troubleshooting:
+- If redirect loop occurs, verify Site URL and Redirect URLs match the actual origin exactly (protocol, host, port).
+- Ensure the OAuth provider’s console also includes the same redirect URL.
+- Check browser console for any Supabase auth errors during callback.
 
 Healthcheck (developer aid):
 - A lightweight dev-only healthcheck runs on app mount (console-only) via src/health/supabaseHealthcheck.js.
 - It calls supabase.auth.getSession and a minimal select from 'learning_paths' to verify connectivity.
-- This is non-blocking and logs to the dev console for quick diagnostics.
+- This does not log secrets; intended for local diagnostics.

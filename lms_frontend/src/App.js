@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { BrowserRouter, Link } from 'react-router-dom';
+import { BrowserRouter, Link, useNavigate } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import AddLearningPath from './components/AddLearningPath';
@@ -44,9 +44,9 @@ function App() {
     <div className="App">
       <header className="App-header" style={{ padding: 24, alignItems: 'stretch' }}>
         <BrowserRouter>
-          <TopNav onToggleTheme={toggleTheme} theme={theme} />
-          <main className="container" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', borderRadius: 12, padding: 16, border: '1px solid var(--border-color)', width: '100%', maxWidth: 1080, margin: '0 auto' }}>
-            <AuthProvider>
+          <AuthProvider>
+            <TopNav onToggleTheme={toggleTheme} theme={theme} />
+            <main className="container" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', borderRadius: 12, padding: 16, border: '1px solid var(--border-color)', width: '100%', maxWidth: 1080, margin: '0 auto' }}>
               <AppRoutes />
               {/* Keep admin utilities accessible via direct routes/components for now */}
               <section style={{ marginTop: 24 }}>
@@ -56,18 +56,18 @@ function App() {
                   <AddCourse />
                 </div>
               </section>
-            </AuthProvider>
-          </main>
-          <p style={{ marginTop: 24, fontSize: 12 }}>
-            <a
-              className="App-link"
-              href="https://reactjs.org"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Learn React
-            </a>
-          </p>
+            </main>
+            <p style={{ marginTop: 24, fontSize: 12 }}>
+              <a
+                className="App-link"
+                href="https://reactjs.org"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Learn React
+              </a>
+            </p>
+          </AuthProvider>
         </BrowserRouter>
       </header>
     </div>
@@ -75,16 +75,44 @@ function App() {
 }
 
 function TopNav({ onToggleTheme, theme }) {
-  const auth = useAuth(); // Within BrowserRouter and inside AuthProvider usage area, but for top bar, we show limited info
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    try {
+      await auth.signOut();
+      navigate('/login');
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Sign out failed', e);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
       <h1 style={{ margin: 0, fontSize: 24, textAlign: 'left' }}>LMS</h1>
       <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Link className="App-link" to="/paths">Paths</Link>
-        <Link className="App-link" to="/employee/dashboard">Employee</Link>
+        <Link className="App-link" to="/dashboard">Employee</Link>
         <Link className="App-link" to="/admin/dashboard">Admin</Link>
-        <Link className="App-link" to="/signin">Sign In</Link>
+        {!auth.user ? (
+          <Link className="App-link" to="/login">Login</Link>
+        ) : (
+          <button
+            onClick={logout}
+            className="btn"
+            style={{
+              background: 'var(--button-bg)',
+              color: 'var(--button-text)',
+              border: 'none',
+              padding: '8px 12px',
+              borderRadius: 8,
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        )}
         <button 
           className="theme-toggle" 
           onClick={onToggleTheme}

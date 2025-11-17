@@ -1,16 +1,17 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import SignUpSignIn from "../auth/SignUpSignIn";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import EmployeeDashboard from "../dashboards/EmployeeDashboard";
 import AdminDashboard from "../dashboards/AdminDashboard";
 import LearningPathsList from "../components/LearningPathsList";
 import CoursesList from "../components/CoursesList";
 import CoursePlayer from "../courses/CoursePlayer";
+import Login from "../auth/Login";
+import AuthCallback from "../auth/AuthCallback";
 
 /**
  * PUBLIC_INTERFACE
- * AppRoutes defines top-level routes for the LMS app.
+ * AppRoutes defines top-level routes for the LMS app, including PKCE auth routes.
  */
 function AppRoutes() {
   const Unauthorized = () => (
@@ -28,9 +29,6 @@ function AppRoutes() {
   );
 
   const CoursesByPath = () => {
-    // In a real app, CoursesList expects learningPathId prop; here we read from URL param
-    // and directly render the list using that id.
-    // Note: Keeping existing CoursesList signature: it accepts learningPathId prop.
     const { id } = useParamsShim();
     return (
       <div className="container" style={{ maxWidth: 960, margin: "24px auto" }}>
@@ -42,11 +40,23 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/signin" element={<SignUpSignIn />} />
+      {/* Auth (PKCE) */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Primary dashboards */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <EmployeeDashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/employee/dashboard"
         element={
-          <ProtectedRoute requireRole="employee">
+          <ProtectedRoute>
             <EmployeeDashboard />
           </ProtectedRoute>
         }
@@ -59,8 +69,12 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Public content */}
       <Route path="/paths" element={<PathsPage />} />
       <Route path="/paths/:id" element={<CoursesByPath />} />
+
+      {/* Protected content */}
       <Route
         path="/courses/:id"
         element={
@@ -69,16 +83,17 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Misc */}
       <Route path="/unauthorized" element={<Unauthorized />} />
-      {/* Default route */}
+
+      {/* Default */}
       <Route path="*" element={<PathsPage />} />
     </Routes>
   );
 }
 
-// Helper to access params without importing useParams in multiple places here
 function useParamsShim() {
-  // Lazy import to avoid named import at top in case bundlers tree-shake differently
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { useParams } = require("react-router-dom");
   // eslint-disable-next-line react-hooks/rules-of-hooks
