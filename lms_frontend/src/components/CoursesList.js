@@ -39,20 +39,20 @@ function CoursesList({ learningPathId }) {
 
   return (
     <div style={{ textAlign: 'left', marginTop: 16 }}>
-      <h3 style={{ marginBottom: 12 }}>Courses</h3>
+      <h3 className="h3" style={{ marginBottom: 12 }}>Courses</h3>
       {status.loading && <p>Loading...</p>}
-      {status.error && <p role="alert" style={{ color: '#EF4444' }}>{status.error}</p>}
-      {!status.loading && !status.error && courses.length === 0 && <p>No courses found.</p>}
+      {status.error && <p role="alert" className="field-error">{status.error}</p>}
+      {!status.loading && !status.error && courses.length === 0 && <p className="text-muted">No courses found.</p>}
       <ol style={{ paddingLeft: 18 }}>
         {courses.map((c) => (
-          <li key={c.id} style={{ marginBottom: 8 }}>
-            <div style={{ fontWeight: 600 }}>{c.title}</div>
-            <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Sequence: {c.sequence}</div>
+          <li key={c.id} className="card" style={{ marginBottom: 8 }}>
+            <div className="h4">{c.title}</div>
+            <div className="text-muted" style={{ fontSize: 14 }}>Sequence: {c.sequence}</div>
             {c.url && (
-              <div>
+              <div style={{ marginTop: 6 }}>
                 <a
                   href={c.url}
-                  className="App-link"
+                  className="link"
                   target="_blank"
                   rel="noreferrer"
                   title="Open course link"

@@ -15,15 +15,17 @@ import AuthCallback from "../auth/AuthCallback";
  */
 function AppRoutes() {
   const Unauthorized = () => (
-    <div className="container" style={{ maxWidth: 640, margin: "48px auto" }}>
-      <h2>Unauthorized</h2>
-      <p>You do not have permission to view this page.</p>
+    <div className="container" style={{ maxWidth: 640, margin: "32px auto" }}>
+      <div className="card">
+        <h2 className="h2">Unauthorized</h2>
+        <p>You do not have permission to view this page.</p>
+      </div>
     </div>
   );
 
   const PathsPage = () => (
     <div className="container" style={{ maxWidth: 960, margin: "24px auto" }}>
-      <h2 style={{ textAlign: "left" }}>Learning Paths</h2>
+      <h2 className="h2" style={{ textAlign: "left" }}>Learning Paths</h2>
       <LearningPathsList />
     </div>
   );
@@ -32,7 +34,7 @@ function AppRoutes() {
     const { id } = useParamsShim();
     return (
       <div className="container" style={{ maxWidth: 960, margin: "24px auto" }}>
-        <h2 style={{ textAlign: "left" }}>Courses for Path {id}</h2>
+        <h2 className="h2" style={{ textAlign: "left" }}>Courses for Path {id}</h2>
         <CoursesList learningPathId={id} />
       </div>
     );

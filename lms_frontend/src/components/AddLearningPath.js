@@ -55,69 +55,63 @@ function AddLearningPath() {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 720, margin: '0 auto', textAlign: 'left' }}>
-      <h2 style={{ marginBottom: 16 }}>Add Learning Path</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="name" style={{ display: 'block', marginBottom: 6 }}>Name</label>
+    <div style={{ textAlign: 'left' }}>
+      <h2 className="h3" style={{ marginBottom: 8 }}>Add Learning Path</h2>
+      <form onSubmit={handleSubmit} className="stack">
+        <div>
+          <label htmlFor="name" className="label">Name</label>
           <input
             id="name"
             name="name"
+            className={`input ${status.error && !form.name.trim() ? 'error' : ''}`}
             value={form.name}
             onChange={handleChange}
             placeholder="e.g., Frontend Development"
             required
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="description" style={{ display: 'block', marginBottom: 6 }}>Description</label>
+        <div>
+          <label htmlFor="description" className="label">Description</label>
           <textarea
             id="description"
             name="description"
+            className={`textarea ${status.error && !form.description.trim() ? 'error' : ''}`}
             value={form.description}
             onChange={handleChange}
             placeholder="Short summary of the learning path"
             required
             rows={4}
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="external_url" style={{ display: 'block', marginBottom: 6 }}>External URL (optional)</label>
+        <div>
+          <label htmlFor="external_url" className="label">External URL (optional)</label>
           <input
             id="external_url"
             name="external_url"
+            className="input"
             value={form.external_url}
             onChange={handleChange}
             placeholder="https://example.com/path"
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <button
-          type="submit"
-          className="btn"
-          disabled={status.loading}
-          style={{
-            background: 'var(--button-bg)',
-            color: 'var(--button-text)',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: 8,
-            cursor: 'pointer'
-          }}
-        >
-          {status.loading ? 'Saving...' : 'Add Path'}
-        </button>
+        <div className="row">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={status.loading}
+          >
+            {status.loading ? 'Saving...' : 'Add Path'}
+          </button>
+        </div>
 
         {status.error && (
-          <p role="alert" style={{ color: '#EF4444', marginTop: 12 }}>{status.error}</p>
+          <p role="alert" className="field-error">{status.error}</p>
         )}
         {status.success && (
-          <p style={{ color: '#2563EB', marginTop: 12 }}>{status.success}</p>
+          <p style={{ color: 'var(--color-primary)' }}>{status.success}</p>
         )}
       </form>
     </div>

@@ -54,53 +54,48 @@ function CoursePlayer() {
 
   const markComplete = () => saveProgress(100);
 
-  if (status.loading) return <div style={{ padding: 24 }}>Loading...</div>;
-  if (status.error) return <div style={{ padding: 24, color: "#EF4444" }}>{status.error}</div>;
-  if (!course) return <div style={{ padding: 24 }}>Course not found.</div>;
+  if (status.loading) return <div className="container" style={{ padding: 24 }}>Loading...</div>;
+  if (status.error) return <div className="container field-error" style={{ padding: 24 }}>{status.error}</div>;
+  if (!course) return <div className="container" style={{ padding: 24 }}>Course not found.</div>;
 
   return (
     <div className="container" style={{ maxWidth: 840, margin: "24px auto", textAlign: "left" }}>
-      <h2 style={{ marginBottom: 8 }}>{course.title || `Course ${id}`}</h2>
-      {course.url && (
-        <p>
-          <a className="App-link" href={course.url} target="_blank" rel="noreferrer">
-            Open course resource
-          </a>
-        </p>
-      )}
+      <div className="card">
+        <h2 className="h2" style={{ marginBottom: 8 }}>{course.title || `Course ${id}`}</h2>
+        {course.url && (
+          <p>
+            <a className="link" href={course.url} target="_blank" rel="noreferrer">
+              Open course resource
+            </a>
+          </p>
+        )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={percent}
-          onChange={(e) => setPercent(Number(e.target.value))}
-          onMouseUp={() => saveProgress(percent)}
-          onTouchEnd={() => saveProgress(percent)}
-          aria-label="Progress percent"
-          style={{ flex: 1 }}
-        />
-        <div style={{ width: 48, textAlign: "right" }}>{percent}%</div>
-      </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={percent}
+            onChange={(e) => setPercent(Number(e.target.value))}
+            onMouseUp={() => saveProgress(percent)}
+            onTouchEnd={() => saveProgress(percent)}
+            aria-label="Progress percent"
+            className="input"
+            style={{ flex: 1 }}
+          />
+          <div style={{ width: 48, textAlign: "right" }}>{percent}%</div>
+        </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button
-          className="btn"
-          onClick={markComplete}
-          disabled={status.saving}
-          style={{
-            background: "var(--button-bg)",
-            color: "var(--button-text)",
-            border: "none",
-            padding: "10px 16px",
-            borderRadius: 8,
-            cursor: "pointer",
-          }}
-        >
-          {status.saving ? "Saving..." : "Mark as Complete"}
-        </button>
+        <div style={{ marginTop: 12 }}>
+          <button
+            className="btn btn-primary"
+            onClick={markComplete}
+            disabled={status.saving}
+          >
+            {status.saving ? "Saving..." : "Mark as Complete"}
+          </button>
+        </div>
       </div>
     </div>
   );

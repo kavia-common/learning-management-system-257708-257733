@@ -1,12 +1,12 @@
 /* CSS Variables for Theme Management */
 :root {
-  /* Light theme colors */
-  --bg-primary: #ffffff;
+  /* Light theme colors (mapped to Ocean Professional variables for backward compatibility) */
+  --bg-primary: var(--color-bg, #ffffff);
   --bg-secondary: #f8f9fa;
-  --text-primary: #282c34;
-  --text-secondary: #61dafb;
-  --border-color: #e9ecef;
-  --button-bg: #007bff;
+  --text-primary: var(--color-text, #111827);
+  --text-secondary: rgba(17, 24, 39, 0.65);
+  --border-color: var(--color-border, #e5e7eb);
+  --button-bg: var(--color-primary, #2563EB);
   --button-text: #ffffff;
 }
 

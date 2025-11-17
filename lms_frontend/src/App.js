@@ -41,25 +41,36 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header" style={{ padding: 24, alignItems: 'stretch' }}>
-        <BrowserRouter>
-          <AuthProvider>
-            <TopNav onToggleTheme={toggleTheme} theme={theme} />
-            <main className="container" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', borderRadius: 12, padding: 16, border: '1px solid var(--border-color)', width: '100%', maxWidth: 1080, margin: '0 auto' }}>
+    <div className="page">
+      <BrowserRouter>
+        <AuthProvider>
+          <header className="header-hero">
+            <div className="container">
+              <TopNav onToggleTheme={toggleTheme} theme={theme} />
+            </div>
+          </header>
+
+          <main className="container section">
+            <div className="card">
               <AppRoutes />
-              {/* Keep admin utilities accessible via direct routes/components for now */}
-              <section style={{ marginTop: 24 }}>
-                <h3 style={{ textAlign: 'left', marginBottom: 8 }}>Admin Utilities</h3>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            </div>
+
+            {/* Keep admin utilities accessible via direct routes/components for now */}
+            <section className="section">
+              <h3 className="h3" style={{ marginBottom: 8 }}>Admin Utilities</h3>
+              <div className="row">
+                <div className="card" style={{ flex: '1 1 360px' }}>
                   <AddLearningPath />
+                </div>
+                <div className="card" style={{ flex: '1 1 360px' }}>
                   <AddCourse />
                 </div>
-              </section>
-            </main>
-            <p style={{ marginTop: 24, fontSize: 12 }}>
+              </div>
+            </section>
+
+            <p className="text-muted" style={{ marginTop: 16, fontSize: 12 }}>
               <a
-                className="App-link"
+                className="link"
                 href="https://reactjs.org"
                 target="_blank"
                 rel="noreferrer"
@@ -67,9 +78,9 @@ function App() {
                 Learn React
               </a>
             </p>
-          </AuthProvider>
-        </BrowserRouter>
-      </header>
+          </main>
+        </AuthProvider>
+      </BrowserRouter>
     </div>
   );
 }
@@ -89,34 +100,31 @@ function TopNav({ onToggleTheme, theme }) {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <h1 style={{ margin: 0, fontSize: 24, textAlign: 'left' }}>LMS</h1>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <Link className="App-link" to="/paths">Paths</Link>
-        <Link className="App-link" to="/dashboard">Employee</Link>
-        <Link className="App-link" to="/admin/dashboard">Admin</Link>
+    <div className="topnav">
+      <div className="brand">
+        <div className="brand-badge" aria-hidden="true">🌊</div>
+        <div className="h3" style={{ margin: 0 }}>Ocean LMS</div>
+      </div>
+      <nav className="nav-links">
+        <Link className="nav-link" to="/paths">Paths</Link>
+        <Link className="nav-link" to="/dashboard">Employee</Link>
+        <Link className="nav-link" to="/admin/dashboard">Admin</Link>
         {!auth.user ? (
-          <Link className="App-link" to="/login">Login</Link>
+          <Link className="nav-link" to="/login">Login</Link>
         ) : (
           <button
             onClick={logout}
-            className="btn"
-            style={{
-              background: 'var(--button-bg)',
-              color: 'var(--button-text)',
-              border: 'none',
-              padding: '8px 12px',
-              borderRadius: 8,
-              cursor: 'pointer'
-            }}
+            className="btn btn-primary"
+            aria-label="Sign out"
           >
             Logout
           </button>
         )}
-        <button 
-          className="theme-toggle" 
+        <button
+          className="btn"
           onClick={onToggleTheme}
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
           {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
         </button>

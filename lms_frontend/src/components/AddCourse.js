@@ -62,83 +62,77 @@ function AddCourse() {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 720, margin: '0 auto', textAlign: 'left' }}>
-      <h2 style={{ marginBottom: 16 }}>Add Course</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="learning_path_id" style={{ display: 'block', marginBottom: 6 }}>Learning Path ID</label>
+    <div style={{ textAlign: 'left' }}>
+      <h2 className="h3" style={{ marginBottom: 8 }}>Add Course</h2>
+      <form onSubmit={handleSubmit} className="stack">
+        <div>
+          <label htmlFor="learning_path_id" className="label">Learning Path ID</label>
           <input
             id="learning_path_id"
             name="learning_path_id"
+            className="input"
             value={form.learning_path_id}
             onChange={handleChange}
             placeholder="Enter target learning path ID"
             required
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="title" style={{ display: 'block', marginBottom: 6 }}>Title</label>
+        <div>
+          <label htmlFor="title" className="label">Title</label>
           <input
             id="title"
             name="title"
+            className="input"
             value={form.title}
             onChange={handleChange}
             placeholder="e.g., Intro to React"
             required
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label htmlFor="sequence" style={{ display: 'block', marginBottom: 6 }}>Sequence</label>
+        <div>
+          <label htmlFor="sequence" className="label">Sequence</label>
           <input
             id="sequence"
             name="sequence"
+            className="input"
             value={form.sequence}
             onChange={handleChange}
             placeholder="e.g., 1"
             inputMode="numeric"
             pattern="[0-9]*"
             required
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label htmlFor="url" style={{ display: 'block', marginBottom: 6 }}>Course URL (optional)</label>
+        <div>
+          <label htmlFor="url" className="label">Course URL (optional)</label>
           <input
             id="url"
             name="url"
+            className="input"
             value={form.url}
             onChange={handleChange}
             placeholder="https://example.com/course"
-            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border-color)' }}
           />
         </div>
 
-        <button
-          type="submit"
-          className="btn"
-          disabled={status.loading}
-          style={{
-            background: 'var(--button-bg)',
-            color: 'var(--button-text)',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: 8,
-            cursor: 'pointer'
-          }}
-        >
-          {status.loading ? 'Saving...' : 'Add Course'}
-        </button>
+        <div className="row">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={status.loading}
+          >
+            {status.loading ? 'Saving...' : 'Add Course'}
+          </button>
+        </div>
 
         {status.error && (
-          <p role="alert" style={{ color: '#EF4444', marginTop: 12 }}>{status.error}</p>
+          <p role="alert" className="field-error">{status.error}</p>
         )}
         {status.success && (
-          <p style={{ color: '#2563EB', marginTop: 12 }}>{status.success}</p>
+          <p style={{ color: 'var(--color-primary)' }}>{status.success}</p>
         )}
       </form>
     </div>

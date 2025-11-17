@@ -37,19 +37,19 @@ function AdminDashboard() {
 
   return (
     <div className="container" style={{ maxWidth: 960, margin: "24px auto", textAlign: "left" }}>
-      <h2 style={{ marginBottom: 12 }}>Admin Dashboard</h2>
+      <h2 className="h2" style={{ marginBottom: 12 }}>Admin Dashboard</h2>
       {status.loading && <p>Loading...</p>}
-      {status.error && <p role="alert" style={{ color: "#EF4444" }}>{status.error}</p>}
+      {status.error && <p role="alert" className="field-error">{status.error}</p>}
 
       {!status.loading && !status.error && (
         <>
-          <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+          <div className="row" style={{ marginBottom: 16 }}>
             <StatCard label="Total Users" value={stats.totalUsers} />
             <StatCard label="Total Enrollments" value={stats.totalEnrollments} />
             <StatCard label="Avg Completion (%)" value={stats.avgCompletion} />
           </div>
 
-          <div style={{ height: 320, border: "1px solid var(--border-color)", borderRadius: 8, padding: 12 }}>
+          <div className="chart" style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -69,8 +69,8 @@ function AdminDashboard() {
 
 function StatCard({ label, value }) {
   return (
-    <div style={{ flex: "1 1 240px", border: "1px solid var(--border-color)", borderRadius: 8, padding: 12 }}>
-      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{label}</div>
+    <div className="card" style={{ flex: "1 1 240px" }}>
+      <div className="text-muted" style={{ fontSize: 12 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 700 }}>{value}</div>
     </div>
   );

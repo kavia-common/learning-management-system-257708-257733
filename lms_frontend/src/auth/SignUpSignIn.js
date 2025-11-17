@@ -73,8 +73,7 @@ function SignUpSignIn() {
 
       setMessage({
         error: "",
-        info:
-          "Signup successful. Check your email to confirm (if required), then sign in.",
+        info: "Signup successful. Check your email to confirm (if required), then sign in.",
       });
       setMode("signin");
     } catch (e) {
@@ -85,108 +84,80 @@ function SignUpSignIn() {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 420, margin: "48px auto", textAlign: "left" }}>
-      <h2 style={{ marginBottom: 12 }}>Welcome</h2>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button
-          className="btn"
-          onClick={() => setMode("signin")}
-          aria-pressed={mode === "signin"}
-          style={{
-            background: mode === "signin" ? "var(--button-bg)" : "transparent",
-            color: mode === "signin" ? "var(--button-text)" : "var(--text-primary)",
-            border: "1px solid var(--border-color)",
-            padding: "8px 12px",
-            borderRadius: 8,
-            cursor: "pointer",
-          }}
-        >
-          Sign In
-        </button>
-        <button
-          className="btn"
-          onClick={() => setMode("signup")}
-          aria-pressed={mode === "signup"}
-          style={{
-            background: mode === "signup" ? "var(--button-bg)" : "transparent",
-            color: mode === "signup" ? "var(--button-text)" : "var(--text-primary)",
-            border: "1px solid var(--border-color)",
-            padding: "8px 12px",
-            borderRadius: 8,
-            cursor: "pointer",
-          }}
-        >
-          Sign Up
-        </button>
-      </div>
-
-      <div style={{ display: "grid", gap: 12 }}>
-        <div>
-          <label htmlFor="email" style={{ display: "block", marginBottom: 6 }}>
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--border-color)" }}
-          />
-        </div>
-        <div>
-          <label htmlFor="password" style={{ display: "block", marginBottom: 6 }}>
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--border-color)" }}
-          />
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {mode === "signin" ? (
+    <div className="container" style={{ maxWidth: 520, margin: "32px auto", textAlign: "left" }}>
+      <div className="card">
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <h2 className="h2" style={{ margin: 0 }}>Welcome</h2>
+          <div className="row" role="tablist" aria-label="Auth mode">
             <button
-              className="btn"
-              onClick={onSignIn}
-              disabled={pending}
-              style={{
-                background: "var(--button-bg)",
-                color: "var(--button-text)",
-                border: "none",
-                padding: "10px 16px",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
+              className={`btn ${mode === "signin" ? "btn-primary" : ""}`}
+              onClick={() => setMode("signin")}
+              aria-pressed={mode === "signin"}
+              role="tab"
+              aria-selected={mode === "signin"}
             >
-              {pending ? "Signing in..." : "Sign In"}
+              Sign In
             </button>
-          ) : (
             <button
-              className="btn"
-              onClick={onSignUp}
-              disabled={pending}
-              style={{
-                background: "var(--button-bg)",
-                color: "var(--button-text)",
-                border: "none",
-                padding: "10px 16px",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
+              className={`btn ${mode === "signup" ? "btn-primary" : ""}`}
+              onClick={() => setMode("signup")}
+              aria-pressed={mode === "signup"}
+              role="tab"
+              aria-selected={mode === "signup"}
             >
-              {pending ? "Signing up..." : "Create Account"}
+              Sign Up
             </button>
-          )}
+          </div>
         </div>
 
-        {message.error && <p role="alert" style={{ color: "#EF4444" }}>{message.error}</p>}
-        {message.info && <p style={{ color: "#2563EB" }}>{message.info}</p>}
+        <div className="stack" style={{ marginTop: 12 }}>
+          <div>
+            <label htmlFor="email" className="label">Email</label>
+            <input
+              id="email"
+              className={`input ${message.error && !email ? "error" : ""}`}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="label">Password</label>
+            <input
+              id="password"
+              className={`input ${message.error && !password ? "error" : ""}`}
+              type="password"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+          <div className="row">
+            {mode === "signin" ? (
+              <button
+                className="btn btn-primary"
+                onClick={onSignIn}
+                disabled={pending}
+              >
+                {pending ? "Signing in..." : "Sign In"}
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                onClick={onSignUp}
+                disabled={pending}
+              >
+                {pending ? "Signing up..." : "Create Account"}
+              </button>
+            )}
+          </div>
+
+          {message.error && <p role="alert" className="field-error">{message.error}</p>}
+          {message.info && <p style={{ color: "var(--color-primary)" }}>{message.info}</p>}
+        </div>
       </div>
     </div>
   );

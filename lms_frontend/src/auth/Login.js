@@ -32,34 +32,32 @@ function Login() {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 460, margin: "48px auto", textAlign: "left" }}>
-      <h2 style={{ marginBottom: 12 }}>Sign in</h2>
-      <p style={{ marginBottom: 16, color: "var(--text-secondary)" }}>
-        Use your organization account to continue.
-      </p>
+    <div className="container" style={{ maxWidth: 520, margin: "32px auto", textAlign: "left" }}>
+      <div className="card">
+        <div className="stack">
+          <div>
+            <h2 className="h2" style={{ marginBottom: 6 }}>Sign in</h2>
+            <p className="text-muted">Use your organization account to continue.</p>
+          </div>
 
-      <button
-        onClick={signInWithOAuth}
-        disabled={pending}
-        className="btn"
-        style={{
-          background: "var(--button-bg)",
-          color: "var(--button-text)",
-          border: "none",
-          padding: "10px 16px",
-          borderRadius: 8,
-          cursor: "pointer",
-        }}
-        aria-label={`Continue with ${provider}`}
-      >
-        {pending ? "Redirecting..." : `Continue with ${capitalize(provider)}`}
-      </button>
+          <div>
+            <button
+              onClick={signInWithOAuth}
+              disabled={pending}
+              className="btn btn-primary"
+              aria-label={`Continue with ${provider}`}
+            >
+              {pending ? "Redirecting..." : `Continue with ${capitalize(provider)}`}
+            </button>
+          </div>
 
-      {error && (
-        <p role="alert" style={{ color: "#EF4444", marginTop: 12 }}>
-          {error}
-        </p>
-      )}
+          {error && (
+            <p role="alert" className="field-error" style={{ marginTop: 6 }}>
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -36,57 +36,40 @@ function LearningPathsList({ onSelect }) {
 
   return (
     <div style={{ textAlign: 'left' }}>
-      <h3 style={{ marginBottom: 12 }}>Learning Paths</h3>
+      <h3 className="h3" style={{ marginBottom: 12 }}>Learning Paths</h3>
       {loading && <p>Loading...</p>}
-      {error && <p role="alert" style={{ color: '#EF4444' }}>{error}</p>}
-      {!loading && !error && paths.length === 0 && <p>No learning paths found.</p>}
+      {error && <p role="alert" className="field-error">{error}</p>}
+      {!loading && !error && paths.length === 0 && <p className="text-muted">No learning paths found.</p>}
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {paths.map((p) => (
-          <li
-            key={p.id}
-            style={{
-              padding: '8px 12px',
-              marginBottom: 8,
-              border: '1px solid var(--border-color)',
-              borderRadius: 8,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{p.description}</div>
-              {p.external_url && (
-                <div style={{ marginTop: 6 }}>
-                  <a
-                    href={p.external_url}
-                    className="App-link"
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Open external link"
-                  >
-                    External link
-                  </a>
-                </div>
+          <li key={p.id} className="card" style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+              <div>
+                <div className="h4">{p.name}</div>
+                <div className="text-muted" style={{ fontSize: 14 }}>{p.description}</div>
+                {p.external_url && (
+                  <div style={{ marginTop: 6 }}>
+                    <a
+                      href={p.external_url}
+                      className="link"
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Open external link"
+                    >
+                      External link
+                    </a>
+                  </div>
+                )}
+              </div>
+              {onSelect && (
+                <button
+                  onClick={() => onSelect(p)}
+                  className="btn btn-primary"
+                >
+                  View Courses
+                </button>
               )}
             </div>
-            {onSelect && (
-              <button
-                onClick={() => onSelect(p)}
-                className="btn"
-                style={{
-                  background: 'var(--button-bg)',
-                  color: 'var(--button-text)',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  cursor: 'pointer'
-                }}
-              >
-                View Courses
-              </button>
-            )}
           </li>
         ))}
       </ul>
