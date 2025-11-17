@@ -48,33 +48,25 @@ Minimal RLS policies (adjust for your needs):
   - Allow user to manage rows where user_id = auth.uid().
 - learning_paths, courses: read for all authenticated users.
 
-Environment variables (in .env):
-- REACT_APP_SUPABASE_URL
-- REACT_APP_SUPABASE_ANON_KEY
-- REACT_APP_FRONTEND_URL (used for emailRedirectTo on sign up)
+Environment variables (for frontend build):
+- SUPABASE_URL (required)
+- SUPABASE_KEY (required)
+- REACT_APP_FRONTEND_URL (optional; used for emailRedirectTo on sign up)
 
-Note: This container's environment list may include REACT_APP_SUPABASE_KEY instead of REACT_APP_SUPABASE_ANON_KEY.
-The app prefers REACT_APP_SUPABASE_ANON_KEY. If your CI only provides REACT_APP_SUPABASE_KEY,
-map it to REACT_APP_SUPABASE_ANON_KEY at build time, or set both with the same value.
+Important:
+- The frontend now reads SUPABASE_URL and SUPABASE_KEY directly at build time.
+- Do not provide or use an "anon" key variable name. Only SUPABASE_KEY is expected.
 
-Mapping note for React (Create React App):
-- CRA only exposes env vars prefixed with REACT_APP_ to the client bundle.
-- If your CI/CD or secrets manager provides SUPABASE_URL and SUPABASE_KEY (common naming),
-  ensure they are mapped to:
-    - REACT_APP_SUPABASE_URL="${SUPABASE_URL}"
-    - REACT_APP_SUPABASE_ANON_KEY="${SUPABASE_KEY}"
-  at build time (e.g., in your pipeline step or Dockerfile).
-
-Troubleshooting: Missing anon key / URL
-- Symptom: "supabaseKey is required." or an error thrown from src/supabaseClient.js about missing variables.
-- Cause: REACT_APP_SUPABASE_* are not set at build time; CRA strips non-REACT_APP_* from the client bundle.
+Troubleshooting: Missing SUPABASE_URL/SUPABASE_KEY
+- Symptom: Error "Supabase configuration is missing (SUPABASE_URL/SUPABASE_KEY)."
+- Cause: SUPABASE_URL and/or SUPABASE_KEY are not set in the environment at build/start.
 - Fix:
   1) Ensure these are set before `npm start` / `npm run build`:
-     export REACT_APP_SUPABASE_URL="$SUPABASE_URL"
-     export REACT_APP_SUPABASE_ANON_KEY="$SUPABASE_KEY"
-  2) Or put them in a .env (do NOT commit real secrets) using .env.example as reference.
+     export SUPABASE_URL="https://<your-project>.supabase.co"
+     export SUPABASE_KEY="<your-public-key>"
+  2) Or create a local .env (do NOT commit real secrets) using .env.example as reference.
   3) Rebuild/restart the app.
-- Dev hint: In development, the console logs presence booleans (never values) for these env vars to help diagnose.
+- Dev hint: In development, the console logs presence booleans (never values) for SUPABASE_URL/SUPABASE_KEY.
 
 Security note:
 - We never log secrets. Only presence is logged in development.
