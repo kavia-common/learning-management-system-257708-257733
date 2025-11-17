@@ -91,12 +91,30 @@ function TopNav({ onToggleTheme, theme }) {
 
   const logout = async () => {
     try {
+      // Ensure session is cleared in Supabase first
       await auth.signOut();
-      // Replace history entry so back button doesn't return to a protected page
-      navigate('/signin', { replace: true });
+
+      // Prefer React Router navigate with history replace
+      if (typeof navigate === 'function') {
+        navigate('/signin', { replace: true });
+      } else if (typeof window !== 'undefined' && window?.location?.assign) {
+        // Safe fallback if navigate is not available in some context
+        window.location.assign('/signin');
+      }
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Sign out failed', e);
+
+      // Best-effort redirect even if signOut throws (e.g., network issues)
+      try {
+        if (typeof navigate === 'function') {
+          navigate('/signin', { replace: true });
+        } else if (typeof window !== 'undefined' && window?.location?.assign) {
+          window.location.assign('/signin');
+        }
+      } catch (_) {
+        // no-op
+      }
     }
   };
 
@@ -111,7 +129,7 @@ function TopNav({ onToggleTheme, theme }) {
         <Link className="nav-link" to="/dashboard">Employee</Link>
         <Link className="nav-link" to="/admin/dashboard">Admin</Link>
         {!auth.user ? (
-          <Link className="nav-link" to="/signin">Login</Link>
+          <Link className="nav-link" to="/signin">Sign In</Link>
         ) : (
           <button
             onClick={logout}
