@@ -3,13 +3,12 @@ import supabase from "../supabaseClient";
 
 /**
  * PUBLIC_INTERFACE
- * AuthContext provides authenticated user, profile (with role), loading state,
- * and auth actions (signIn, signOut).
+ * AuthContext provides authenticated user, profile (with role),
+ * and auth actions (signIn, signOut). No global loading gate is enforced.
  */
 const AuthContext = createContext({
   user: null,
   profile: null,
-  loading: true,
   // Actions
   signIn: async (_email, _password) => {},
   signOut: async () => {},
@@ -18,12 +17,11 @@ const AuthContext = createContext({
 // PUBLIC_INTERFACE
 /**
  * AuthProvider wraps the app, subscribes to Supabase auth state, and loads the user's profile.
- * It ensures loading resolves promptly even if profile fetch fails, avoiding infinite spinners.
+ * Children render immediately; no UI is blocked by a global loading state.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   // an incrementing token to ensure we set profile for the latest user only
   const loadTokenRef = useRef(0);
@@ -57,9 +55,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
 
-    // Initial session hydrate
+    // Initial session hydrate (non-blocking for UI)
     (async () => {
-      setLoading(true);
       try {
         const {
           data: { session },
@@ -73,7 +70,6 @@ export function AuthProvider({ children }) {
         if (!active) return;
         setUser(authUser);
         if (authUser?.id) {
-          // Do not block loading on profile fetch; we will flip loading in finally.
           await loadProfile(authUser.id);
         } else {
           setProfile(null);
@@ -84,8 +80,6 @@ export function AuthProvider({ children }) {
         console.error("Auth init error:", e);
         setUser(null);
         setProfile(null);
-      } finally {
-        if (active) setLoading(false);
       }
     })();
 
@@ -95,7 +89,7 @@ export function AuthProvider({ children }) {
       const nextUser = session?.user ?? null;
       setUser(nextUser);
 
-      // Always try to load profile, but ensure loading state is not stuck
+      // Refresh profile whenever user changes
       try {
         if (nextUser?.id) {
           await loadProfile(nextUser.id);
@@ -106,8 +100,6 @@ export function AuthProvider({ children }) {
         // eslint-disable-next-line no-console
         console.warn("onAuthStateChange profile load failed", e);
         setProfile(null);
-      } finally {
-        setLoading(false);
       }
     });
 
@@ -121,7 +113,6 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       profile,
-      loading,
       // PUBLIC_INTERFACE
       signIn: async (email, password) => {
         // Email/password sign-in only.
@@ -134,13 +125,12 @@ export function AuthProvider({ children }) {
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        // After sign out, ensure state clears promptly
+        // After sign out, clear state promptly
         setUser(null);
         setProfile(null);
-        setLoading(false);
       },
     }),
-    [user, profile, loading]
+    [user, profile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
