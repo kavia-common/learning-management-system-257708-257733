@@ -8,12 +8,19 @@ import CoursesList from "../components/CoursesList";
 import CoursePlayer from "../courses/CoursePlayer";
 import SignUpSignIn from "../auth/SignUpSignIn";
 import AdminSignIn from "../auth/AdminSignIn";
+import CoursesPage from "../pages/CoursesPage";
+import AssignmentsPage from "../pages/AssignmentsPage";
+import ProfilePage from "../pages/ProfilePage";
+import HealthcheckPage from "../pages/HealthcheckPage";
 
 /**
  * PUBLIC_INTERFACE
  * AppRoutes defines top-level routes for the LMS app, with email/password auth at /signin.
+ * Includes healthcheck path (REACT_APP_HEALTHCHECK_PATH or /health).
  */
 function AppRoutes() {
+  const healthPath = process.env.REACT_APP_HEALTHCHECK_PATH || '/health';
+
   const Unauthorized = () => (
     <div className="container" style={{ maxWidth: 640, margin: "32px auto" }}>
       <div className="card">
@@ -42,6 +49,9 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* Health */}
+      <Route path={healthPath} element={<HealthcheckPage />} />
+
       {/* Auth: only email/password with role selection via SignUpSignIn */}
       <Route path="/signin" element={<SignUpSignIn />} />
       {/* Dedicated admin sign-in route (public) */}
@@ -69,6 +79,32 @@ function AppRoutes() {
         element={
           <ProtectedRoute requireRole="admin">
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* App sections with sidebar */}
+      <Route
+        path="/courses"
+        element={
+          <ProtectedRoute>
+            <CoursesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/assignments"
+        element={
+          <ProtectedRoute>
+            <AssignmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

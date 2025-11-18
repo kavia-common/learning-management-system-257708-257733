@@ -287,6 +287,9 @@ function TopNav({ onToggleTheme, theme }) {
       <nav className="nav-links" role="navigation" aria-label="Primary">
         <Link className="nav-link" to="/paths">Paths</Link>
         <Link className="nav-link" to="/dashboard">Employee</Link>
+        <Link className="nav-link" to="/courses">Courses</Link>
+        <Link className="nav-link" to="/assignments">Assignments</Link>
+        <Link className="nav-link" to="/profile">Profile</Link>
 
         {/* Admin link area: show nothing while role is loading to avoid flash */}
         {loadingRole ? (
